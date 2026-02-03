@@ -43,20 +43,24 @@ pipeline {
         }
 
         stage('Push Docker Image to ECR') {
-            steps {
-                echo "Logging in to AWS ECR and pushing image..."
-                sh '''
-                aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.ap-south-1.amazonaws.com
+    steps {
+        echo "Logging in to AWS ECR and pushing image..."
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-creds'
+        ]]) {
+            sh '''
+              aws sts get-caller-identity
 
+              aws ecr get-login-password --region $AWS_REGION \
+              | docker login --username AWS --password-stdin $ECR_URI
 
-                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI/$ECR_REPO:$IMAGE_TAG
-                docker push $ECR_URI/$ECR_REPO:$IMAGE_TAG
-                '''
-            }
+              docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI/$ECR_REPO:$IMAGE_TAG
+              docker push $ECR_URI/$ECR_REPO:$IMAGE_TAG
+            '''
         }
-        
-
-
+    }
+}
 
         stage('Deploy to EKS') {
             steps {
