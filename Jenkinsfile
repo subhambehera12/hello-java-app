@@ -29,18 +29,26 @@ pipeline {
         stage('Build Docker Image') {
     steps {
         sh '''
-        cat > Dockerfile <<EOF
+        # Create Dockerfile
+        cat > Dockerfile <<'EOF'
         FROM openjdk:11-jre-slim
         WORKDIR /app
         COPY target/hello-java-app-1.0.jar app.jar
         CMD ["java","-jar","app.jar"]
         EOF
 
+        # Check if jar exists
+        if [ ! -f target/hello-java-app-1.0.jar ]; then
+        echo "ERROR: JAR file not found!"
+        exit 1
+        fi
+
+        # Build Docker image
         docker build -t ${ECR_REPO}:${IMAGE_TAG} .
-        '''
+      '''
     }
-        
 }
+
 
 
         stage('Push Docker Image to ECR') {
