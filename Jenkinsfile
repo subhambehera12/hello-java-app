@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "Cloning GitHub repository..."
-                git url: 'https://github.com/<your-github>/hello-java-app.git'
+                git url: 'https://github.com/subhambehera12/hello-java-app.git'
             }
         }
 
@@ -54,7 +54,10 @@ pipeline {
                 '''
             }
         }
+        
 
+
+        
         stage('Deploy to EKS') {
             steps {
                 echo "Updating kubeconfig and deploying to EKS..."
