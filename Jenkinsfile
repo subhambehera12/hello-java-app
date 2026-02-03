@@ -56,6 +56,8 @@ pipeline {
         }
         
 
+
+        
         stage('Deploy to EKS') {
             steps {
                 echo "Updating kubeconfig and deploying to EKS..."
