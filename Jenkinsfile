@@ -27,40 +27,38 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                echo "Creating Dockerfile and building Docker image..."
-                sh '''
-                cat <<EOF > Dockerfile
-                FROM openjdk:11-jre-slim
-                WORKDIR /app
-                COPY target/hello-java-app-1.0.jar app.jar
-                CMD ["java","-jar","app.jar"]
-                EOF
+    steps {
+        sh '''
+        cat > Dockerfile <<EOF
+        FROM openjdk:11-jre-slim
+        WORKDIR /app
+        COPY target/hello-java-app-1.0.jar app.jar
+        CMD ["java","-jar","app.jar"]
+        EOF
 
-                docker build -t $ECR_REPO:$IMAGE_TAG .
-                '''
-            }
-        }
+        docker build -t ${ECR_REPO}:${IMAGE_TAG} .
+        '''
+    }
+        
+}
+
 
         stage('Push Docker Image to ECR') {
     steps {
-        echo "Logging in to AWS ECR and pushing image..."
-        withCredentials([[
-          $class: 'AmazonWebServicesCredentialsBinding',
-          credentialsId: 'aws-creds'
-        ]]) {
+        withCredentials([
+            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+        ]) {
             sh '''
-              aws sts get-caller-identity
+        aws ecr get-login-password --region $AWS_REGION \
+        | docker login --username AWS --password-stdin $ECR_URI
 
-              aws ecr get-login-password --region $AWS_REGION \
-              | docker login --username AWS --password-stdin $ECR_URI
-
-              docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI/$ECR_REPO:$IMAGE_TAG
-              docker push $ECR_URI/$ECR_REPO:$IMAGE_TAG
-            '''
+         docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI/$ECR_REPO:$IMAGE_TAG
+         docker push $ECR_URI/$ECR_REPO:$IMAGE_TAG
+        '''
         }
     }
 }
+
 
         stage('Deploy to EKS') {
             steps {
@@ -90,6 +88,7 @@ pipeline {
                         - containerPort: 8080
                 EOF
 
+                aws eks update-kubeconfig --region ap-south-1 --name my-eks-cluster
                 kubectl apply -f deployment.yaml
                 '''
             }
