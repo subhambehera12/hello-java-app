@@ -46,8 +46,9 @@ pipeline {
             steps {
                 echo "Logging in to AWS ECR and pushing image..."
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION \
-                | docker login --username AWS --password-stdin $ECR_URI
+                aws ecr get-login-password --region ap-south-1 \
+                | docker login --username AWS --password-stdin 123456789012.dkr.ecr.ap-south-1.amazonaws.com
+
 
                 docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI/$ECR_REPO:$IMAGE_TAG
                 docker push $ECR_URI/$ECR_REPO:$IMAGE_TAG
