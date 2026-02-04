@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-java
+  labels:
+    app: hello-java
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-java
+  template:
+    metadata:
+      labels:
+        app: hello-java
+    spec:
+      containers:
+      - name: hello-java
+        image: 123456789012.dkr.ecr.ap-south-1.amazonaws.com/hello-java-app:PLACEHOLDER_TAG
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-java-service
+  labels:
+    app: hello-java
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello-java
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
